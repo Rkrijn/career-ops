@@ -162,7 +162,9 @@ export async function POST(req: Request) {
   // The advisor reads and fetches but must never write — the same intent the
   // Claude branch spells as Read,WebFetch,Glob,Grep with Bash/Write/Edit denied.
   // networkReadOnly, not localReadOnly, because WebFetch is in that allow list.
-  let child;
+  // Annotated, not inferred: the resume fallback below reassigns this, so TS
+  // cannot narrow it from a single assignment.
+  let child: ReturnType<typeof spawnHeadlessCli>;
   try {
     child = spawnHeadlessCli(
       binPath,
