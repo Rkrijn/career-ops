@@ -102,6 +102,15 @@ test("coerce keeps only well-formed fields and drops junk, unknown keys and bad 
   assert.equal(p.portfolio, undefined, "non-http url is not a portfolio");
 });
 
+test("a prose section body can never open its own heading", () => {
+  // mergeSections splits the file on `## `, so a body starting with one would
+  // silently begin a NEW section instead of filling this one.
+  assert.equal(renderSection("exitNarrative", "## My story"), "My story");
+  assert.equal(renderSection("compTargets", "  ### 120k base"), "120k base");
+  assert.equal(renderSection("crossCuttingAdvantage", "Plain prose"), "Plain prose");
+  assert.equal(renderSection("exitNarrative", "#hashtag stays"), "#hashtag stays");
+});
+
 test("coerce of nothing usable is an empty object (→ 'nothing to write')", () => {
   assert.deepEqual(coercePersonalization({}), {});
   assert.deepEqual(coercePersonalization(null), {});

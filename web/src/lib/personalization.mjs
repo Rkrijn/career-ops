@@ -97,7 +97,10 @@ export function renderSection(id, value) {
     case "exitNarrative":
     case "crossCuttingAdvantage":
     case "compTargets":
-      return String(value);
+      // Prose passthrough — but never let a body open with its own `## `: the
+      // merge splits the file on headings, so that would silently start a new
+      // section instead of filling this one.
+      return String(value).replace(/^\s*#{1,6}\s+/, "");
     case "portfolio":
       return [
         `- url: ${value.url}`,
