@@ -245,6 +245,9 @@ export function AssistantConsole() {
   // and bump it to the top of the list).
   const chatTitleRef = useRef<string | null>(null);
   const lastSavedRef = useRef<string>("");
+  // What the debounced save still owes. Switching or deleting a conversation
+  // inside the debounce window must write this, not drop it.
+  const pendingRef = useRef<{ id: string; payload: string } | null>(null);
 
   const serializable = (ms: Msg[]) =>
     ms.map((m) => ({ role: m.role, parts: m.parts.filter((p) => p.type !== "confirm" || p.state !== "pending") }));
@@ -259,19 +262,38 @@ export function AssistantConsole() {
     }
   }
 
-  async function persistChat(id: string, ms: Msg[]) {
-    const messages = serializable(ms);
-    const payload = JSON.stringify({ id, title: chatTitleRef.current ?? deriveTitle(ms), cliId, claudeSessionId: sessionRef.current, messages });
-    if (payload === lastSavedRef.current) return;
+  /** The exact bytes a save writes — captured while the chat is still current,
+   *  so a later flush cannot pick up the NEXT chat's session id or title. */
+  function chatPayload(id: string, ms: Msg[]) {
+    return JSON.stringify({ id, title: chatTitleRef.current ?? deriveTitle(ms), cliId, claudeSessionId: sessionRef.current, messages: serializable(ms) });
+  }
+
+  async function putChat(id: string, payload: string) {
     try {
       await fetch(`/api/chats/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: payload });
-      lastSavedRef.current = payload;
+      return true;
     } catch {
-      /* a failed save loses at most this turn; nothing else depends on it */
+      return false; // a failed save loses at most this turn; nothing else depends on it
     }
   }
 
+  async function persistChat(id: string, ms: Msg[]) {
+    const payload = chatPayload(id, ms);
+    if (payload === lastSavedRef.current) return;
+    if (await putChat(id, payload)) lastSavedRef.current = payload;
+  }
+
+  /** Write what the debounce still owes, now — call before the current chat changes. */
+  function flushPending() {
+    const pend = pendingRef.current;
+    pendingRef.current = null;
+    if (!pend) return;
+    lastSavedRef.current = pend.payload;
+    void putChat(pend.id, pend.payload).then(() => void refreshList());
+  }
+
   async function openChat(id: string) {
+    flushPending();
     try {
       const r = await fetch(`/api/chats/${id}`);
       if (!r.ok) return false;
@@ -296,6 +318,7 @@ export function AssistantConsole() {
   }
 
   function startNewChat(initial?: Msg[]) {
+    flushPending();
     const id = newChatId();
     const ms = initial ?? [{ role: "assistant", parts: [{ type: "text", text: GREETING }] }];
     sessionRef.current = null;
@@ -363,8 +386,15 @@ export function AssistantConsole() {
   // persist after each completed turn (never mid-stream) and keep the list fresh
   useEffect(() => {
     if (busy || !chatId || !messages.some((m) => m.role === "user")) return;
+    const payload = chatPayload(chatId, messages);
+    if (payload === lastSavedRef.current) return;
+    pendingRef.current = { id: chatId, payload };
     const t = setTimeout(() => {
-      void persistChat(chatId, messages).then(refreshList);
+      pendingRef.current = null;
+      void putChat(chatId, payload).then((ok) => {
+        if (ok) lastSavedRef.current = payload;
+        void refreshList();
+      });
     }, 400);
     return () => clearTimeout(t);
   }, [messages, busy, chatId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -384,6 +414,9 @@ export function AssistantConsole() {
 
   async function removeChat(id: string) {
     setConfirmDelete(null);
+    // a pending save for ANOTHER chat must still land; one for this chat is moot
+    if (pendingRef.current?.id === id) pendingRef.current = null;
+    flushPending();
     try {
       await fetch(`/api/chats/${id}`, { method: "DELETE" });
     } catch {

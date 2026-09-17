@@ -21,11 +21,13 @@ export const dynamic = "force-dynamic";
 // /api/profile uses) rather than through a helper taking a path parameter:
 // Turbopack statically traces fs calls, and a non-literal argument makes it
 // trace the whole project and warn at build time.
-function readUserProfile(): string {
+// null (not "") when the file is there but unreadable — merging onto "" would
+// drop every hand-edited section the user already has.
+function readUserProfile(): string | null {
   try {
     return fs.readFileSync(path.join(careerOpsRoot(), "modes", "_profile.md"), "utf8");
   } catch {
-    return "";
+    return null;
   }
 }
 function readTemplate(): string {
@@ -41,7 +43,7 @@ function userProfileExists(): boolean {
 
 export async function GET() {
   const exists = userProfileExists();
-  const sections = sectionState(exists ? readUserProfile() : "", readTemplate());
+  const sections = sectionState((exists ? readUserProfile() : "") ?? "", readTemplate());
   return Response.json({ exists, sections });
 }
 
@@ -60,6 +62,9 @@ export async function POST(req: Request) {
   // DATA-LOSS GUARD (same class as /api/profile, #649/#704/#920/#958): a missing
   // file is seeded from the template; an existing one is merged, never replaced.
   const base = userProfileExists() ? readUserProfile() : readTemplate();
+  if (base === null) {
+    return Response.json({ error: "modes/_profile.md exists but could not be read — refusing to overwrite it" }, { status: 500 });
+  }
   const rendered: Record<string, string> = {};
   for (const id of ids) rendered[id] = renderSection(id, patch[id]);
   const merged = mergeSections(base, rendered);

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Sparkles, Check, Circle, CircleDashed } from "lucide-react";
+import { readSavedCliId } from "@/lib/saved-cli";
 
 // The "profile that grows while you talk": a live checklist of the four setup
 // prerequisites plus the eight personalization sections, read from the same
@@ -19,12 +20,10 @@ const PREREQS: { key: string; label: string; ask: string }[] = [
   { key: "portals.yml", label: "Companies and roles to scan", ask: "the roles and companies to scan" },
 ];
 
+// Same reader the rest of the app uses, so "configured" cannot mean one thing
+// here and another in Config (an empty-string cliId is not configured).
 function hasCli(): boolean {
-  try {
-    return !!JSON.parse(localStorage.getItem("career-ops:config") || "{}").cliId;
-  } catch {
-    return false;
-  }
+  return !!readSavedCliId();
 }
 
 export function OnboardingProgress({ compact = false }: { compact?: boolean }) {

@@ -118,7 +118,9 @@ test("a shim whose target is missing on disk passes through (spawn reports the r
 
 test("a shim pointing outside its own directory is refused", () => {
   // A crafted shim is just a file; it must not redirect the spawn elsewhere.
-  const evil = '"%dp0%\\node_modules\\..\\..\\..\\Windows\\System32\\cmd.exe" %*';
+  // Four `..` so it actually lands ON the planted file below: the guard, not a
+  // missing target, must be what refuses it.
+  const evil = '"%dp0%\\node_modules\\..\\..\\..\\..\\Windows\\System32\\cmd.exe" %*';
   const files = {
     [at("claude.cmd")]: evil,
     [norm(path.join("C:", "Users", "u", "Windows", "System32", "cmd.exe"))]: "",

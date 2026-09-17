@@ -25,6 +25,10 @@ export async function PUT(req: Request, { params }: Params) {
   }
   const chat = sanitizeChat({ ...(body as object), id });
   if (!chat) return Response.json({ error: "invalid chat" }, { status: 400 });
+  // Replacing the messages must not rewrite history: an existing conversation
+  // keeps the createdAt it was first stored with, whatever the client sends.
+  const existing = readChat(id);
+  if (existing) chat.createdAt = existing.createdAt;
   chat.updatedAt = Date.now();
   try {
     writeChat(chat);
