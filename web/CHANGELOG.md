@@ -1,5 +1,63 @@
 # Changelog
 
+## [0.12.0](https://github.com/Rkrijn/career-ops/compare/web-v0.11.0...web-v0.12.0) (2026-09-17)
+
+
+### Features
+
+* **oferta:** add evidence-tiered requirement importance to Block B ([#3596](https://github.com/Rkrijn/career-ops/issues/3596)) ([14710e2](https://github.com/Rkrijn/career-ops/commit/14710e29a6a801ea3ae52bb3f15756dc9ada7d29))
+* **providers:** add Feishu Jobs and MokaHR scanner providers ([#3491](https://github.com/Rkrijn/career-ops/issues/3491)) ([1696bec](https://github.com/Rkrijn/career-ops/commit/1696bec4d021768e7359f9aad6b329cba883da20))
+* **web:** add a global "Back to Top" button ([#2821](https://github.com/Rkrijn/career-ops/issues/2821)) ([e5e786b](https://github.com/Rkrijn/career-ops/commit/e5e786b1116e6c5e4c5bd2020f3bc1f6e5dd2058))
+* **web:** conversation history on disk and longer assistant memory via --resume ([7216a92](https://github.com/Rkrijn/career-ops/commit/7216a92a3511102ca381cc061ecba455dfb6e14f))
+* **web:** finish onboarding inside the UI — confirm-gated personalization of modes/_profile.md and a live progress panel ([73621a9](https://github.com/Rkrijn/career-ops/commit/73621a9d8f5c28b07eed6c41a1a83ee795bd3487))
+* **web:** opt-in origin allowlist for the local dashboard API ([#3597](https://github.com/Rkrijn/career-ops/issues/3597)) ([0754973](https://github.com/Rkrijn/career-ops/commit/075497329a55d7c1e5184cfffb21fd0efeaf13ba))
+* **web:** resizable assistant panel and a composer that grows with its content ([1d1644a](https://github.com/Rkrijn/career-ops/commit/1d1644af0ea5aeb3945914180fb9cf0cf2628610))
+
+
+### Bug Fixes
+
+* **deps:** refresh web lockfile for Next update ([2ca6c00](https://github.com/Rkrijn/career-ops/commit/2ca6c00fa9d18cb45caef99fea0b97b05971bf55))
+* **tracker:** resolve addition columns by name so score and status cannot transpose ([00b0296](https://github.com/Rkrijn/career-ops/commit/00b0296c6071eb955f38404e60a10ceaccad45b5))
+* **url-key:** preserve existing fragment comparison params ([02e632e](https://github.com/Rkrijn/career-ops/commit/02e632e634280ef7224ec268279adbbe9f0650ce))
+* **url-key:** preserve hash-route posting identity ([52f314c](https://github.com/Rkrijn/career-ops/commit/52f314cd268bd0b2de56b71ba236ce288138dac0))
+* **url-key:** preserve hash-route posting identity ([965fff3](https://github.com/Rkrijn/career-ops/commit/965fff30149eff1da2f6b1a937ca3738260b9a2e))
+* **web,dashboard:** point two user-facing references at the repository's new home ([6c0e68d](https://github.com/Rkrijn/career-ops/commit/6c0e68d472d4ee1e0082fd861c133778f262ecfe))
+* **web:** a company with no usable slug must not match every tailored CV ([#3214](https://github.com/Rkrijn/career-ops/issues/3214)) ([880c58b](https://github.com/Rkrijn/career-ops/commit/880c58b999033b7f38439f20246943e9342e7fdf))
+* **web:** add vertical padding to pipeline facet chips ([#4038](https://github.com/Rkrijn/career-ops/issues/4038)) ([b6bc5ff](https://github.com/Rkrijn/career-ops/commit/b6bc5ffb92e847e43b91042d4b828c99ce5960a2))
+* **web:** add vertical padding to pipeline facet chips ([#4038](https://github.com/Rkrijn/career-ops/issues/4038)) ([33a56a2](https://github.com/Rkrijn/career-ops/commit/33a56a2e68c03bc67f13e1b99ac3decd26be8e8e))
+* **web:** detect a real tailored CV/cover on disk, not just the tracker flag ([0fb2080](https://github.com/Rkrijn/career-ops/commit/0fb2080db1a5c90b3655bff7fdf74593026adf04))
+* **web:** don't let a failed fetch become a scored report ([#3826](https://github.com/Rkrijn/career-ops/issues/3826)) ([10ede60](https://github.com/Rkrijn/career-ops/commit/10ede60522f1abd71dfd8c93266f9176180213ac))
+* **web:** enable apply from the generated pdf index ([ac761fa](https://github.com/Rkrijn/career-ops/commit/ac761fa612fc943b1ef9458f704fefd653954955))
+* **web:** fence agent CLIs at the spawn boundary ([1d2cb1e](https://github.com/Rkrijn/career-ops/commit/1d2cb1e125ea3034ff01b464e9a5e2628c0e315f))
+* **web:** find Grok in its default install dirs, not only on PATH ([77657dc](https://github.com/Rkrijn/career-ops/commit/77657dcd0bcb7c2e9a9950148d337d160aa5b459))
+* **web:** give grok a parser, and make the token fold per-CLI ([#2689](https://github.com/Rkrijn/career-ops/issues/2689)) ([c7549fb](https://github.com/Rkrijn/career-ops/commit/c7549fb3593f9ee456d7118beb80b0ee6e76747c))
+* **web:** honour language.modes_dir and language.output on web-triggered runs ([#3253](https://github.com/Rkrijn/career-ops/issues/3253)) ([316906e](https://github.com/Rkrijn/career-ops/commit/316906e64cc779d7580122b1d345c4c06f503a4b))
+* **web:** identify the verdict block by its heading, not by the letter ([#3502](https://github.com/Rkrijn/career-ops/issues/3502)) ([0ef1bfb](https://github.com/Rkrijn/career-ops/commit/0ef1bfbe2385551af415e05858900710d0aadd23))
+* **web:** ignore nonfatal CLI stderr on clean run exit ([#1974](https://github.com/Rkrijn/career-ops/issues/1974)) ([7f430ee](https://github.com/Rkrijn/career-ops/commit/7f430eeab07b8bd514295fd02aec571c42699d1e))
+* **web:** let report tables use the screen on large displays ([e571f2c](https://github.com/Rkrijn/career-ops/commit/e571f2cb9de3f8952863e5c51adc437a09b83fef))
+* **web:** let report tables use the screen on large displays ([b80aee1](https://github.com/Rkrijn/career-ops/commit/b80aee1bc530f6ac8c6a6aec882af5c4a5431822))
+* **web:** make CLI-backed features work on Windows — resolve npm shims, never inherit a stale console ([a9c7e71](https://github.com/Rkrijn/career-ops/commit/a9c7e718ada7ff3cf4b63cc433a00a305df4c627))
+* **web:** only surface follow-ups that are actually due ([#2157](https://github.com/Rkrijn/career-ops/issues/2157)) ([82e1055](https://github.com/Rkrijn/career-ops/commit/82e10559beb8c80d8a50bcd456e1a893e8ba76f8))
+* **web:** order the Today action queue before truncating it ([3a067ee](https://github.com/Rkrijn/career-ops/commit/3a067ee580b7982cf5dd6edf7895112e4e99600b))
+* **web:** parseCliJson misses set-status.mjs's pretty-printed success ([#3602](https://github.com/Rkrijn/career-ops/issues/3602)) ([848ca44](https://github.com/Rkrijn/career-ops/commit/848ca440fb2d243ae08205ab3d0bc12903a36c65))
+* **web:** portals/verify also needs windowsHide + honest failure like doctor/followups ([ea99108](https://github.com/Rkrijn/career-ops/commit/ea991088ca5091a775918d4347bd202e88a180e7))
+* **web:** preserve a malformed portals.yml instead of overwriting it with the example ([07ed4f3](https://github.com/Rkrijn/career-ops/commit/07ed4f31295bee9d03ce1ab61d6d59c835431ff7))
+* **web:** rank "Awaiting your decision" by every EVALUATED alias, not an English prefix ([d7573e1](https://github.com/Rkrijn/career-ops/commit/d7573e189193993c56d19c9216313f0fd4cebee2))
+* **web:** reconcile the assistant route with upstream's spawn fencing ([6cc12dc](https://github.com/Rkrijn/career-ops/commit/6cc12dc884ffe12b78b1b4ae228b3e94aa2a610e))
+* **web:** regenerate the nested web/ lockfile on postcss bumps ([dba2a2e](https://github.com/Rkrijn/career-ops/commit/dba2a2ed7e6317e5962be51c2fe680376221e0de))
+* **web:** require the cv- prefix so the tailored-CV resolvers stop returning the cover letter ([#2156](https://github.com/Rkrijn/career-ops/issues/2156)) ([414d340](https://github.com/Rkrijn/career-ops/commit/414d340b4425bf199ddad36dfc0a551da4e99fe0))
+* **web:** resolve npm shims with win32 path semantics, and close five review findings ([50b7053](https://github.com/Rkrijn/career-ops/commit/50b705323bb32f5c08b70697cfbbc5fa6f098ebe))
+* **web:** resolve the tailored cover for THIS application, not the company's newest ([8fc2bb4](https://github.com/Rkrijn/career-ops/commit/8fc2bb41db2aad7bf50902ad8a26e726c9637eec))
+* **web:** resolve the tailored CV for THIS application, not the newest for the company ([ca11627](https://github.com/Rkrijn/career-ops/commit/ca116279d3a5ba9a18e57e3f03f056066c178649))
+* **web:** self-host the production fonts so the app starts without Google ([a2e46c3](https://github.com/Rkrijn/career-ops/commit/a2e46c329fa9819ca6748a437c4ecdbdac4a6ec2))
+* **web:** show a cause-specific hint on job failure instead of an always-auth prompt ([#2158](https://github.com/Rkrijn/career-ops/issues/2158)) ([d372908](https://github.com/Rkrijn/career-ops/commit/d37290897f15f5284788c34cafcdabd3bd56f5bf))
+* **web:** show Via attribution for confidential employers ([f749939](https://github.com/Rkrijn/career-ops/commit/f7499392ff75bf966693bdae535f785743ad300d))
+* **web:** stop evaluation tables collapsing to one word per line ([#3254](https://github.com/Rkrijn/career-ops/issues/3254)) ([b3c1e12](https://github.com/Rkrijn/career-ops/commit/b3c1e127e02c588aeefb8d02d14759706ecf1fc2))
+* **web:** stop tracing runtime data paths ([0a9d71f](https://github.com/Rkrijn/career-ops/commit/0a9d71fe94286bfe26cdd99e5d7b3d50b27a948a))
+* **web:** tab label spacing and report table word-breaking ([#3160](https://github.com/Rkrijn/career-ops/issues/3160)) ([102560b](https://github.com/Rkrijn/career-ops/commit/102560bb904f5d107338719f8ce3bdce8d9399e5))
+* **web:** tell the beta reporter's user when the dupe search could not run ([77bf490](https://github.com/Rkrijn/career-ops/commit/77bf4906abc5c5f63ac07a6c27a7f24c1d03683d))
+* **web:** use next/link for decision-card report link ([#1931](https://github.com/Rkrijn/career-ops/issues/1931)) ([e7b38b3](https://github.com/Rkrijn/career-ops/commit/e7b38b3e086540060f5f5704afd55ea5fa4a4a3c))
+
 ## [0.11.0](https://github.com/career-ops-hq/career-ops/compare/web-v0.10.0...web-v0.11.0) (2026-09-16)
 
 
