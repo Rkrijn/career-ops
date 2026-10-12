@@ -148,6 +148,26 @@ try {
     } finally { rmSync(dir, { recursive: true, force: true }); }
   }
 
+  // 2b. The nixpkgs build of the server (pkgs.playwright-mcp) is configured by
+  // its binary name and never mentions the npm package → still detected.
+  {
+    const dir = mkdtempSync(join(tmpdir(), 'co-mcp-2b-'));
+    try {
+      writeFileSync(join(dir, '.mcp.json'),
+        JSON.stringify({ mcpServers: { playwright: { command: 'mcp-server-playwright', args: ['--headless'] } } }));
+      const state = runDoctor(dir, [], {});
+      if (!expectWarn(state, '#2b nixpkgs mcp-server-playwright')) {
+        // already failed
+      } else if (state.playwright_mcp?.claude === true
+          && Array.isArray(state.warnings)
+          && !state.warnings.some((w) => PLAYWRIGHT_RE.test(w))) {
+        pass('mcp-server-playwright command (nixpkgs build) → detected, no warning');
+      } else {
+        fail(`#2b unexpected state: ${JSON.stringify(state)}`);
+      }
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  }
+
   // 3. --cli opencode + opencode.json with Playwright → no warning; source=flag.
   {
     const dir = mkdtempSync(join(tmpdir(), 'co-mcp-3-'));

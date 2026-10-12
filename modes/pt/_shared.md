@@ -231,5 +231,5 @@ Em vagas e negociações brasileiras, existem termos e práticas que não aparec
 | Playwright | Verificar se vagas ainda estão ativas (browser_navigate + browser_snapshot), extrair descrições de SPAs. **CRÍTICO: NUNCA iniciar 2+ agentes com Playwright em paralelo — eles compartilham a mesma instância do navegador** |
 | Read | cv.md, _profile.md, article-digest.md, cv-template.html |
 | Write | HTML temporário para PDF, reports .md, TSV em `batch/tracker-additions/` |
-| Edit | Ajustes de conteúdo (não usar para criar novos registros no tracker) |
+| Edit | Ajustes de conteúdo em reports. Nunca a tabela do tracker: novos registros entram como TSV mesclado por `node merge-tracker.mjs`, mudanças de status e de notas passam por `node set-status.mjs` |
 | Bash | `node generate-pdf.mjs`, `node merge-tracker.mjs` |

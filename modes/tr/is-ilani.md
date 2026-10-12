@@ -199,7 +199,7 @@ Her iki satırı da **tam olarak yukarıdaki gibi** yaz: sütun adları İngiliz
 
 Ardından `node merge-tracker.mjs` çalıştır.
 
-**Mevcut** kayıt için `data/applications.md`'de ilgili satırı doğrudan güncelle (durum, PDF, rapor bağlantısı).
+**Mevcut** kayıt için `data/applications.md`'yi elle düzenleme: durum ve notları `node set-status.mjs` ile, PDF işaretini `node mark-pdf-ready.mjs <rapor no>` ile güncelle.
 
 ---
 

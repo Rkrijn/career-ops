@@ -234,7 +234,7 @@
 7. Бути прямим і конкретним — без води
 8. Для україномовних вакансій: технічна українська, короткі речення.
    8b. URL-и кейсів у Professional Summary PDF (рекрутер може прочитати тільки це).
-9. **Додавання до трекера як TSV** — не додавати НОВІ записи в `data/applications.md` напряму; для нових записів писати TSV у `batch/tracker-additions/` і робити merge. Пряме редагування існуючих рядків допустиме для оновлення `status`/`notes`. Писати спершу рядок **назв колонок**, під ним — рівно один рядок даних (див. AGENTS.md, розділ «TSV Format for Tracker Additions»). Саме рядок назв дозволяє `merge-tracker.mjs` зіставляти поля за ІМЕНЕМ, а не вгадувати, яка колонка — score, а яка — status.
+9. **Додавання до трекера як TSV** — не додавати НОВІ записи в `data/applications.md` напряму; для нових записів писати TSV у `batch/tracker-additions/` і робити merge. Існуючі рядки теж не правити вручну: `status` і `notes` оновлювати через `node set-status.mjs`. Писати спершу рядок **назв колонок**, під ним — рівно один рядок даних (див. AGENTS.md, розділ «TSV Format for Tracker Additions»). Саме рядок назв дозволяє `merge-tracker.mjs` зіставляти поля за ІМЕНЕМ, а не вгадувати, яка колонка — score, а яка — status.
 10. **Включати `**URL:**` в заголовок кожного звіту.**
 
 ### Інструменти
@@ -245,8 +245,8 @@
 | WebFetch   | Fallback для отримання JD зі статичних сторінок                                                                                                      |
 | Playwright | Верифікація вакансій (browser_navigate + browser_snapshot). **НІКОЛИ 2+ агентів з Playwright паралельно.**                                           |
 | Read       | cv.md, \_profile.md, article-digest.md, cv-template.html                                                                                             |
-| Write      | Тимчасовий HTML для PDF, data/applications.md, звіти .md                                                                                             |
-| Edit       | Оновлення трекера                                                                                                                                    |
+| Write      | Тимчасовий HTML для PDF, звіти .md, TSV-файли для трекера в `batch/tracker-additions/` (ніколи не `data/applications.md` напряму) |
+| Edit       | Правки у звітах та іншому згенерованому контенті. Таблицю трекера напряму не редагувати: нові рядки додаються через TSV і зливаються командою `node merge-tracker.mjs`, зміни статусу та нотаток виконуються через `node set-status.mjs` |
 | Canva MCP  | Опціональна генерація візуального CV. Дублювати базовий дизайн, редагувати текст, експортувати PDF. Потребує `canva_resume_design_id` в profile.yml. |
 | Bash       | `node generate-pdf.mjs`                                                                                                                              |
 

@@ -450,6 +450,17 @@ test("buildPrompt: evaluate does not enumerate the report's sections", () => {
   assert.ok(/EVERY section its report template specifies/i.test(prompt), "it must defer to the mode file for the section set");
 });
 
+test("PDF tailoring reads the resolved report even when the application number differs", () => {
+  const prompt = buildPrompt({
+    kind: "pdf", ...ARGS, input: "309",
+    reportFile: "reports/18-example-2026-09-10.md",
+  });
+  assert.match(prompt, /application #309/);
+  assert.ok(prompt.includes('"reports/18-example-2026-09-10.md"'));
+  assert.ok(!prompt.includes("reports/309-"));
+  assert.ok(!prompt.includes("reports/018-"), "the exact unpadded filename must be retained");
+});
+
 test("buildPrompt: the pdf prompt fills the template the caller resolved", () => {
   // Given a user whose config/profile.yml selects a non-base CV template. The
   // route resolves it through cv-templates.mjs and hands the path in; the worker

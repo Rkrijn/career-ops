@@ -340,7 +340,7 @@ Full evaluation を `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` に保存す�
 
 ### 2. Record in tracker
 
-**ALWAYS** record in `data/applications.md`:
+**ALWAYS** record in the tracker. Write a TSV (rule 9 in `_shared.md`) and merge it with `node merge-tracker.mjs`; never write a row into `data/applications.md` by hand. Fields:
 - Next sequential number
 - Current date
 - Company

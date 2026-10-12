@@ -133,7 +133,7 @@ export async function POST(req: Request) {
   // The root is passed, not re-derived: a relative CAREER_OPS_PROFILE resolves
   // against it, and `process.cwd()` here is `<core>/web` (see cv-template.mjs).
   const cvTemplate = kind === "pdf" ? await resolveCvTemplate(careerOpsRoot()) : undefined;
-  const prompt = buildPrompt({ kind, input, memory: readMemory(), today, postedAt, lang, cvTemplate });
+  const prompt = buildPrompt({ kind, input, memory: readMemory(), today, postedAt, lang, cvTemplate, reportFile: pdfPaths?.reportFile });
 
   const isClaude = cliId === "claude";
   // Which tools each kind gets, and the whole claude argv, live in
@@ -435,7 +435,7 @@ export async function POST(req: Request) {
             root: careerOpsRoot(),
             pdfPaths: paths,
             format,
-            reportNum: input,
+            reportNum: paths.reportNum,
           });
           if (result.kind === "render-failed") {
             send({ type: "error", msg: result.error.slice(0, 200) });

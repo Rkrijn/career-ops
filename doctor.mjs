@@ -332,6 +332,17 @@ function checkSkillEntrypoints(root) {
   };
 }
 
+// The browsers `npx playwright install` downloads are dynamically linked against
+// FHS library paths, so on NixOS they fail to start (libglib-2.0.so.0 not
+// found). The flake dev shell points Playwright at nixpkgs' patched browsers
+// instead, and is the only fix that works there.
+function playwrightInstallFix() {
+  if (existsSync('/etc/NIXOS')) {
+    return 'On NixOS, run career-ops inside the flake dev shell (`nix develop`, or `direnv allow`) and re-enter it after `npm install`. Do not run `npx playwright install`: NixOS cannot run the browsers it downloads. See docs/NIXOS.md.';
+  }
+  return 'Run: npx playwright install chromium';
+}
+
 async function checkPlaywright() {
   let chromium;
   try {
@@ -340,7 +351,7 @@ async function checkPlaywright() {
     return {
       pass: false,
       label: 'Playwright chromium not installed',
-      fix: 'Run: npx playwright install chromium',
+      fix: playwrightInstallFix(),
     };
   }
   // Validate by launching — chromium.executablePath() points at Chrome for Testing
@@ -356,7 +367,7 @@ async function checkPlaywright() {
     return {
       pass: false,
       label: 'Playwright chromium not installed',
-      fix: 'Run: npx playwright install chromium',
+      fix: playwrightInstallFix(),
     };
   } finally {
     try { await browser?.close(); } catch { /* ignore */ }
@@ -374,11 +385,14 @@ const MCP_CONFIGS = [
   { cli: 'opencode', files: ['opencode.json', 'opencode.jsonc'] },
 ];
 
-// Server qualifies if its definition references the @playwright/mcp package.
+// Server qualifies if its definition references the @playwright/mcp package,
+// or the `mcp-server-playwright` binary that package installs. nixpkgs ships
+// the binary on its own (pkgs.playwright-mcp, in the flake dev shell), so a
+// NixOS config names the command and never mentions the npm package.
 function isPlaywrightServer(server) {
   if (!server || typeof server !== 'object') return false;
   const blob = JSON.stringify(server).toLowerCase();
-  return blob.includes('@playwright/mcp');
+  return blob.includes('@playwright/mcp') || blob.includes('mcp-server-playwright');
 }
 
 // Any bucket shape that can hold a server map. A plugin's own .mcp.json is a

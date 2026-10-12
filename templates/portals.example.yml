@@ -68,6 +68,12 @@
 # Regional variants count as one language (en-GB equals en), and a posting whose
 # language the ATS doesn't report is compared as before.
 #
+# Some ATSes (Personio) serve every language version of a posting under one URL.
+# With the switch off they return each posting once, in its own default
+# language; with it on they return every version, at one extra request per
+# further language. A `?language=xx` on such a careers_url asks for that
+# language instead of the default wherever a posting has it.
+#
 # scan_history:
 #   dedup_include_language: true
 
@@ -1691,6 +1697,20 @@ search_queries:
 #   # precision, same recall-first approach VDAB/Job Bank Canada use.
 #   enabled: true
 #
+# - name: Platsbanken — Software         # Sweden's national job board (Arbetsförmedlingen)
+#   provider: platsbanken
+#   platsbanken:
+#     # keywords optional: falls back to config/profile.yml's target_roles
+#     # (primary[] + archetypes[].name) when omitted.
+#     keywords: ["software engineer", "systemutvecklare"]  # explicit override
+#   max_pages: 5          # optional page cap (100 ads/page, default 5, max 21)
+#   # Keywords scope the source rather than decorate it: the JobTech Dev API
+#   # stops serving at offset 2000, so the unfiltered board (39,433 ads,
+#   # measured 2026-10-12) cannot be walked past 2,100 rows — each keyword gets
+#   # its own window. No location option either — use location_filter (above)
+#   # for precision, same recall-first approach VDAB/Job Bank Canada use.
+#   enabled: true
+#
 # - name: Glints — Indonesia             # SE-Asia aggregator (SG/ID/MY/VN)
 #   provider: glints
 #   searchKeywords: "AI Engineer"
@@ -1873,10 +1893,12 @@ search_queries:
 # Integrated website → Careers API.
 #
 # Personio (common across DACH/EU) auto-detects from its careers host and
-# pulls the public no-auth XML feed at <slug>.jobs.personio.de/xml — e.g.:
+# reads the public no-auth careers page (XML feed at /xml as the fallback).
+# Postings come back in their own default language; add ?language=<code> to
+# careers_url to prefer another one where a posting has it — e.g.:
 #
 #   - name: Example GmbH
-#     careers_url: https://example-gmbh.jobs.personio.de
+#     careers_url: https://example-gmbh.jobs.personio.de/?language=en
 #     enabled: true
 #
 # Teamtailor auto-detects from a <slug>.teamtailor.com careers host and reads

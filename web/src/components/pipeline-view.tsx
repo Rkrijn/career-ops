@@ -17,6 +17,7 @@ import { PipelineTableRowsSkeleton } from "@/components/page-loading-skeletons";
 import { startRouteProgress } from "@/components/route-progress";
 import { sortRows } from "@/lib/core/pipeline-sort.mjs";
 import { PageFrame } from "@/components/page-frame";
+import { pipelineQuery } from "@/lib/pipeline-navigation.mjs";
 
 // INBOX (the triage queue) is the default tab; the rest filter the tracker.
 const TABS = [
@@ -71,6 +72,8 @@ export function PipelineView({
   // Search stays LOCAL for snappy typing; seeded from the URL and re-synced only
   // when the URL's q changes (i.e. the assistant set it) — never per keystroke.
   const [q, setQ] = useState(params.get("q") ?? "");
+  // Typing stays local, so include it explicitly when leaving the list.
+  const detailQuery = pipelineQuery(params.toString(), q);
   const lastUrlQ = useRef(params.get("q") ?? "");
   useEffect(() => {
     const urlQ = params.get("q") ?? "";
@@ -256,21 +259,22 @@ export function PipelineView({
               {filtered.map((r) => {
                 const company = companyPresentation(r);
                 const key = applicationKey(r);
+                const detailHref = `/pipeline/${encodeURIComponent(r.n)}${detailQuery ? `?${detailQuery}` : ""}`;
                 return (
                   <tr key={key} data-application-key={key} className="group transition-colors hover:bg-surface/40">
                     <td className="whitespace-nowrap px-4 py-3 font-medium tabular-nums">
-                      <Link href={`/pipeline/${r.n}`} className="transition-colors group-hover:text-brand">
+                      <Link href={detailHref} className="transition-colors group-hover:text-brand">
                         #{r.n}
                       </Link>
                     </td>
                     <td className="px-4 py-3 font-medium">
-                      <Link href={`/pipeline/${r.n}`} className="flex items-center gap-2.5 transition-colors group-hover:text-brand">
+                      <Link href={detailHref} className="flex items-center gap-2.5 transition-colors group-hover:text-brand">
                         <CompanyLogo name={company.logoName} size={20} />
                         {company.label}
                       </Link>
                     </td>
                   <td className="px-4 py-3 text-muted">
-                    <Link href={`/pipeline/${r.n}`}>{r.role}</Link>
+                    <Link href={detailHref}>{r.role}</Link>
                   </td>
                   <td className="px-4 py-3">
                     <Badge tone={scoreTone(r.score)}>{r.score || "—"}</Badge>

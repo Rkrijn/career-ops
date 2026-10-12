@@ -64,6 +64,7 @@ export function ReportView({
   canDelete = false,
   pdfReadyFromIndex = false,
   coverReady = false,
+  backHref = "/pipeline",
 }: {
   id: string;
   app: Application | null;
@@ -77,6 +78,7 @@ export function ReportView({
    *  the page, see resolveTailoredCover). View only — covers are never generated
    *  from here. */
   coverReady?: boolean;
+  backHref?: string;
 }) {
   const meta = report ? parseReport(report) : null;
   const field = (label: string) => meta?.fields.find((f) => f.label === label)?.value;
@@ -96,7 +98,7 @@ export function ReportView({
   return (
     <PageFrame className="max-w-3xl xl:max-w-5xl 2xl:max-w-[1600px]">
       <Link
-        href="/pipeline"
+        href={backHref}
         className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-brand"
       >
         <ArrowLeft className="size-4" /> Pipeline

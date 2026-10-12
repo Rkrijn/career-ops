@@ -946,12 +946,22 @@ async function deleteApp(args, ctx) {
   const trackerTransaction = await openTrackerTransaction(ctx.mdPath);
 
   let removal;
+  // Beside the transaction's canonical path, not ctx.mdPath: a tracker reached
+  // through a symlink keeps its backup next to the real file.
+  const backupPath = `${trackerTransaction.path}.bak`;
   try {
-    removal = removeRowByNum(trackerTransaction.read(), num);
+    const before = trackerTransaction.read();
+    removal = removeRowByNum(before, num);
     if (!removal.removed) {
       ctx.error(`No application numbered ${num} in ${ctx.mdPath}.`);
       return 1;
     }
+    // Backup first, from the bytes read inside the lock, like every other
+    // tracker writer (and this script's own `export`). A delete takes the
+    // row's status, report link and notes with it, and nothing else on disk
+    // holds them. If the backup cannot be written this throws and the row is
+    // not removed.
+    writeFileAtomic(backupPath, before);
     trackerTransaction.replace(removal.newContent);
   } finally {
     trackerTransaction.close();
@@ -972,6 +982,7 @@ async function deleteApp(args, ctx) {
     ctx.error(`(row removed; index resync skipped: ${e.message})`);
   }
   ctx.error(`Removed application ${num} (${removedCount} row${removedCount > 1 ? 's' : ''}) from ${ctx.mdPath} and reindexed.`);
+  ctx.error(`Tracker as it was before the delete: ${backupPath}`);
   if (report) ctx.error(`Note: report file may now be orphaned — ${report}`);
 }
 

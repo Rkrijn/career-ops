@@ -52,6 +52,7 @@ append_recovery_record() {
 }
 sleep() { :; }
 ${functionCode('update_state_retrying')}
+${functionCode('has_report_file')}
 release_report_num() { printf '%s' "$1" > released; }
 is_decimal_number() { [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]; }
 handle_result() {

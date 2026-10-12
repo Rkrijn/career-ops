@@ -887,11 +887,15 @@ By default this scans the base `cv.md` — read it as a **pre-tailoring gap list
 
 ### 2. Record in tracker
 
-**ALWAYS** record in `data/applications.md`:
-- Next sequential number
+**ALWAYS** record the evaluation in the tracker, as a tracker-addition TSV that `node merge-tracker.mjs` merges. Never append or edit a row in `data/applications.md` yourself: a hand-written row skips the tracker lock the other writers share and the merge's duplicate check. Rule 9 in `modes/_shared.md` says where the TSV goes; AGENTS.md, "TSV Format for Tracker Additions", defines its header row and fields. Write one TSV for this evaluation, then run `node merge-tracker.mjs` (once, after the last evaluation, when several run as a batch).
+
+If this company+role is already in the tracker, never hand-write a second row. The merge matches a re-evaluation to the existing row instead of adding another, and a status or notes change on an existing row goes through `node set-status.mjs`.
+
+The TSV carries:
+- Number: the report's number (next sequential). The merge keeps it as the tracker `#` unless that number is already taken, in which case it assigns the next free one and prints it (`➕ Add #N`)
 - Current date
 - Company — the END employer. If the JD is agency-mediated ("our client", agency domain, no employer named), ASK the user which agency it came through, use `?` as Company, and put a distinguishing descriptor in Notes (e.g. `fintech, Leeds`). Never write "Confidential" — the `?` marker is locale-invariant and can't collide with a real firm.
-- Via (when the tracker has the column) — the agency/recruiter firm, `—` for direct. In the tracker-addition TSV, append it as a tagged extra field: `via={Agency}` (see the TSV format spec).
+- Via — the agency/recruiter firm the user confirmed; leave it out for a direct application. In the TSV it is a `via` column (see the TSV format spec). The merge can only store it in a tracker that has a Via column: when the user confirmed an agency and the tracker has none, run `node merge-tracker.mjs --migrate-via` first, otherwise the merge warns and drops the value.
 - Role
 - Score: copy the already-decided 1–5 Global Score from the report header and Machine Summary `score`. Apply any `modes/_custom.md` Scoring Rules when deciding that score, not again while writing the tracker. A–H are report sections, not scores to average.
 - Status: `Evaluated`
@@ -899,7 +903,7 @@ By default this scans the base `cv.md` — read it as a **pre-tailoring gap list
 - Report: root-relative link `[001](reports/001-company-2026-01-01.md)` (when merged via `merge-tracker.mjs` it is normalized to be relative to the tracker's own dir, e.g. `../reports/...`; see #760)
 - Notes — when the pipeline entry carries a `| posted: {YYYY-MM-DD}` segment (written by the scanner from the provider's `offer.postedAt`, see `modes/pipeline.md`), carry it through as its own trailing segment: `…; posted: 2026-08-07`. This is the only path by which the posting date reaches the tracker, and the dashboard's POSTED column — requisition age, "is this still plausibly being worked?" — reads it from the note. Copy it verbatim; when the entry has no segment, write nothing rather than inferring a date, since the column renders an absent date as `—` and a guessed one would report a months-old req as fresh.
 
-**Tracker format:**
+**The row the merge writes** (for reference; you write the TSV, not this row):
 
 ```markdown
 | # | Date | Company | Role | Score | Status | PDF | Report | Notes |
@@ -918,5 +922,7 @@ If — and only if — the user **explicitly stated a role-specific desired numb
 ```text
 {tracker#}\t{YYYY-MM-DD}\tdesired\t{amount}\t{currency}\tuser\t{short context note}
 ```
+
+`{tracker#}` is the row's `#` **after** the merge in step 2, read from `merge-tracker.mjs`'s output. Write this line after merging, never before: until then the row has no number, and the report number is not a safe stand-in because the merge assigns a different `#` when that one is taken.
 
 Never infer a desired number from the JD, the score, or past conversations. The profile default (`config/profile.yml` → `compensation.target_range`) needs no line — `salary-gap.mjs` reads it as the fallback. The advertised figure also needs no line: the report's `advertised_comp` **is** the advertised observation.

@@ -164,8 +164,8 @@ Archetype を検出した後、`modes/_profile.md` を読み、該当 archetype 
 | WebFetch | Static pages から JD を抽出する fallback |
 | Playwright | 求人検証（browser_navigate + browser_snapshot）。**NEVER 2+ agents with Playwright in parallel.** |
 | Read | cv.md, _profile.md, article-digest.md, cv-template.html |
-| Write | Temporary HTML for PDF, applications.md, reports .md |
-| Edit | tracker 更新 |
+| Write | Temporary HTML for PDF, reports .md, `batch/tracker-additions/` の tracker 追加用 TSV（`applications.md` は直接書き換えない） |
+| Edit | report など生成済みコンテンツの修正。tracker の表は直接編集しない：新しい行は TSV で追加して `node merge-tracker.mjs` でマージし、status と notes の変更は `node set-status.mjs` で行う |
 | Canva MCP | Optional visual CV generation. Base design を duplicate し、text を edit して PDF export。`profile.yml` の `cv.canva_resume_design_id` が必要 |
 | Bash | `node generate-pdf.mjs` |
 

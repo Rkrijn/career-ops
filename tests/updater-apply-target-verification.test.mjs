@@ -25,32 +25,33 @@
  * write) are asserted against its source text.
  */
 
-import { execFileSync } from 'child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
-import { tmpdir } from 'os';
+import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { pass, fail } from './helpers.mjs';
+import { pass, fail, makeUpdaterRepo, hermeticGitRunner } from './helpers.mjs';
 import {
-  gitIn, pinRefToCommit, pinInheritedTarget, versionAtRef, downgradeRefusal,
+  pinRefToCommit, pinInheritedTarget, versionAtRef, downgradeRefusal,
   isComparableVersion, targetIdentityRefusal, refusalMessage,
   authoritativeShaFromRefBody, refspecForTarget, locallyModifiedSystemFiles, pathFullyPreserved,
 } from '../update-system.mjs';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// Built on makeUpdaterRepo, whose runner seals the contributor's git config out
+// of the fixture. This suite used to run git through the updater's own gitIn(),
+// which inherits the environment: with `tag.gpgSign = true` in ~/.gitconfig the
+// lightweight `git tag career-ops-v1.33.0` below became a signed, annotated tag
+// with no message, git died with "no tag message?", and every assertion after
+// it never ran. The same config signed each fixture commit with the
+// contributor's own key.
 function makeRepo(prefix) {
-  const dir = mkdtempSync(join(tmpdir(), prefix));
-  const g = (...args) => gitIn(dir, ...args);
-  g('init', '-q', '-b', 'main', '.');
+  const { dir, g, ctx } = makeUpdaterRepo({ prefix });
   g('config', 'core.autocrlf', 'false');
-  g('config', 'user.email', 'test@example.com');
-  g('config', 'user.name', 'Test');
   // A second runner with stderr piped, for the calls whose git failure is the
-  // expected outcome — gitIn inherits stderr, so those would print git's own
-  // `fatal:` line into an otherwise passing suite.
-  const quiet = (...args) => execFileSync('git', args, { cwd: dir, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-  return { dir, g, ctx: { git: g }, quietCtx: { git: quiet } };
+  // expected outcome — the default runner inherits stderr, so those would print
+  // git's own `fatal:` line into an otherwise passing suite. Sealed the same way.
+  const quiet = hermeticGitRunner(dir, { stdio: ['pipe', 'pipe', 'pipe'] });
+  return { dir, g, ctx, quietCtx: { git: quiet } };
 }
 
 function writeFixture(dir, rel, text) {
@@ -102,8 +103,8 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
   // name the tree the run started with. This is what the dozen unpinned reads
   // inside apply() could not promise.
   setFetchHead(dir, older);
-  const afterMove = gitIn(dir, 'show', `${pinned}:update-system.mjs`);
-  const unpinnedAfterMove = gitIn(dir, 'show', 'FETCH_HEAD:update-system.mjs');
+  const afterMove = g('show', `${pinned}:update-system.mjs`);
+  const unpinnedAfterMove = g('show', 'FETCH_HEAD:update-system.mjs');
   if (afterMove.includes('v2.1')) {
     pass('a read through the pinned SHA still sees the original tree after FETCH_HEAD moves');
   } else {

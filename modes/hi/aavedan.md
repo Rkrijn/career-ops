@@ -105,7 +105,7 @@ Notes:
 ## Step 6 -- Application के बाद (वैकल्पिक)
 
 यदि candidate confirm करे कि application submit हो गई:
-1. `applications.md` में status "Evaluated" से "Applied" में update करें
+1. Status को "Evaluated" से "Applied" में update करें: `node set-status.mjs <report#> Applied` (`applications.md` table को हाथ से edit न करें)
 2. Report के Block G को final responses से update करें
 3. अगला step suggest करें: hiring manager के लिए LinkedIn outreach के लिए `/career-ops contacto`
 

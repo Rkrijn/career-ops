@@ -432,7 +432,7 @@ Guardar la evaluación completa en `reports/{###}-{company-slug}-{YYYY-MM-DD}.md
 
 ### 2. Registrar en el tracker
 
-**SIEMPRE** registrar en `data/applications.md`:
+**SIEMPRE** registrar en el tracker. Escribir un TSV (regla 9 de `_shared.md`) y fusionarlo con `node merge-tracker.mjs`; nunca escribir una fila directamente en `data/applications.md`. Campos:
 - Siguiente número secuencial, fecha, empresa (empleador FINAL; si mediada por agencia usar `?` como Empresa con descriptor en Notas), Via (firma de agencia/recruiter o `—`; en TSV: `via={Agencia}`), rol, score (1-5), estado `Evaluated`, PDF ❌/✅, report `[001](reports/001-company-2026-01-01.md)`, notas (trasladar `| posted: {YYYY-MM-DD}` textualmente si presente).
 
 **Formato del tracker:**

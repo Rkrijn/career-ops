@@ -25,6 +25,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveCvTemplate } from "../../src/lib/core/cv-template.mjs";
 import { BASE_CV_TEMPLATE, buildPrompt } from "../../src/lib/run-prompts.mjs";
+import { linkCorePackage } from "../helpers/core-package.mjs";
 
 const CORE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
@@ -75,7 +76,10 @@ function fakeCheckout({ profileAt = "config/profile.yml", template = "mine", pac
   // js-yaml is a bare specifier: outside the checkout there is no node_modules on
   // the way up, the import throws, and EVERY case below would fall back to the
   // base template — i.e. pass for the reason the fix exists to remove.
-  fs.symlinkSync(path.join(CORE, "node_modules"), path.join(root, "node_modules"), "dir");
+  // Linked from wherever Node resolves it for the core, not from
+  // `<core>/node_modules`: a git worktree has none of its own, so that link was
+  // dangling there and every case failed on the base template.
+  linkCorePackage(root, "js-yaml", CORE);
   // Every template must carry the placeholders validateTemplate() requires, or
   // resolveTemplate throws and the fallback would hide which case we are in.
   const body = "{{NAME}}{{EXPERIENCE}}{{EDUCATION}}";

@@ -878,6 +878,28 @@ export function resolveCanonicalState(input, states) {
 }
 
 /**
+ * Resolve a raw tracker status CELL to its canonical lowercase state id.
+ *
+ * The read-side twin of resolveCanonicalState(): scripts that bucket or compare
+ * tracker rows (analyze-patterns, tracker-sync-check) work in ids
+ * (`interview`), not labels (`Interview`), and read cells that legacy trackers
+ * left with a date appended (`Rejected 2026-06-01`). Both steps live here so no
+ * reader needs its own alias table. The hand-copied ones had drifted: a
+ * `Mülakat` row counted as "pending" in the pattern analysis and as an
+ * unrecognized status in the sync check.
+ *
+ * @param {*} input - Raw status cell from applications.md.
+ * @param {{id:string,label:string,aliases:string[]}[]} states - From loadCanonicalStates().
+ * @returns {string|null} Canonical id (e.g. "interview"), or null when unknown.
+ */
+export function resolveCanonicalStateId(input, states) {
+  const cell = String(input ?? '').replace(/\*\*/g, '').replace(/\s+\d{4}-\d{2}-\d{2}.*$/, '');
+  const label = resolveCanonicalState(cell, states);
+  if (label === null) return null;
+  return states.find(s => s.label === label).id.toLowerCase();
+}
+
+/**
  * Canonical process-exit codes shared by every locked, single-purpose
  * tracker-writer CLI (set-status.mjs, mark-pdf-ready.mjs, ...) — one source
  * so a new script can't drift from the numbering an existing one already

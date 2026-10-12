@@ -283,6 +283,7 @@ const SYSTEM_PATHS = [
   'lib/tsv-formula-escape.mjs',
   'lib/is-main-module.mjs',
   'lib/mjs-files.mjs',
+  'lib/walk-tree.mjs',
   'lib/scratch-dirs.mjs',
   'lib/story-bank.mjs',
   'lib/outcome-dir.mjs',
@@ -487,7 +488,6 @@ const SYSTEM_PATHS = [
   '.editorconfig',
   '.agents/',
   '.claude/skills/',
-  '.cursor/skills/',
   '.opencode/skills/',
   '.opencode/commands/',
   '.claude-plugin/',
@@ -588,7 +588,6 @@ const SYSTEM_PATHS = [
 
 const BOOTSTRAP_PATHS = [
   '.agents/',
-  '.cursor/skills/',
   '.opencode/skills/',
   '.antigravitycli/skills/',
   '.grok/skills/',
@@ -1902,8 +1901,15 @@ export async function loadConfiguredTemplateVariants({ profilePath } = {}) {
       // no-exemption behavior only for that exact compatibility case.
       return configuredVariants;
     }
-    if (err?.code === 'ERR_MODULE_NOT_FOUND'
-        && /Cannot find package ['"]js-yaml['"]/.test(err?.message || '')) {
+    // A local module cv-templates.mjs imports can be missing too. The re-exec
+    // checkout list is built by the CLIENT updater, and one released before the
+    // fallback-closure walk (#4999) checks out the new cv-templates.mjs without
+    // the files it newly imports. The normal checkout supplies them, so read
+    // the profile without cv-templates.mjs for this pass.
+    const missingLocalModule = err?.code === 'ERR_MODULE_NOT_FOUND'
+      && String(err?.url || '').startsWith('file:');
+    if (missingLocalModule || (err?.code === 'ERR_MODULE_NOT_FOUND'
+        && /Cannot find package ['"]js-yaml['"]/.test(err?.message || ''))) {
       if (!profilePath || !existsSync(profilePath)) return configuredVariants;
       return configuredTemplateVariantsFromProfileSource(readFileSync(profilePath, 'utf8'));
     }
