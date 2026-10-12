@@ -14,8 +14,10 @@ export function cleanMessages(input) {
       if (p.type === 'card' && typeof p.jobId === 'string') return [{ type: p.type, jobId: p.jobId }];
       if (p.type === 'batch' && typeof p.batchId === 'string' && Array.isArray(p.jobIds) && p.jobIds.every(id => typeof id === 'string')) return [{ type: p.type, batchId: p.batchId, jobIds: p.jobIds }];
       // Confirm callbacks exist only in the live component; never resurrect them.
-      if (p.type === 'confirm' && p.state === 'pending') return [];
-      if (p.type === 'confirm' && ['done', 'cancelled'].includes(p.state) && typeof p.summary === 'string') return [{ type: 'note', text: `${p.summary} (${p.state})` }];
+      // A save still in flight ('saving') is the same: its outcome lands in the
+      // live card, and a later save records that outcome.
+      if (p.type === 'confirm' && ['pending', 'saving'].includes(p.state)) return [];
+      if (p.type === 'confirm' && ['done', 'cancelled', 'failed'].includes(p.state) && typeof p.summary === 'string') return [{ type: 'note', text: `${p.summary} (${p.state})` }];
       throw new Error('Invalid message part');
     }) };
   });

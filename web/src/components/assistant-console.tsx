@@ -27,7 +27,9 @@ type Part =
   | { type: "note"; text: string }
   | { type: "card"; jobId: string }
   | { type: "batch"; batchId: string; jobIds: string[] }
-  | { type: "confirm"; cid: string; summary: string; state: "pending" | "done" | "cancelled" };
+  | { type: "confirm"; cid: string; summary: string; state: ConfirmState };
+// "saving": confirmed, and the write it runs has not answered yet.
+type ConfirmState = "pending" | "saving" | "done" | "cancelled" | "failed";
 type Msg = { role: "user" | "assistant"; parts: Part[] };
 
 const CONFIG_KEY = "career-ops:config";
@@ -168,7 +170,7 @@ export function AssistantConsole() {
   const exploreRef = useRef(explore);
   exploreRef.current = explore;
   const handledRef = useRef<Set<string>>(new Set());
-  const confirmRuns = useRef<Map<string, () => DoneInfo>>(new Map());
+  const confirmRuns = useRef<Map<string, () => DoneInfo | Promise<DoneInfo>>>(new Map());
 
   // panel size: restored on mount (client-only, so SSR markup never mismatches),
   // persisted on change
@@ -470,17 +472,16 @@ export function AssistantConsole() {
       writePortals: (roles, location) => {
         fetch("/api/portals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roles, location }) }).catch(() => {});
       },
-      writePersonalization: (patch) => {
-        fetch("/api/personalization", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) })
-          .then(async (r) => {
-            // A refused or failed write must not pass for a saved one: the route
-            // answers 409/500 with the reason, and the file is left as it was.
-            if (!r.ok) throw new Error(((await r.json().catch(() => null)) as { error?: string } | null)?.error || `HTTP ${r.status}`);
-            router.refresh();
-            // The onboarding panel listens for this to refetch section state.
-            window.dispatchEvent(new CustomEvent("co-onboarding-changed"));
-          })
-          .catch((e) => appendParts([{ type: "note", text: `Your personalization was NOT saved: ${e instanceof Error ? e.message : "the request failed"}` }]));
+      // Returns the request, not void: the confirm card waits on it, so it
+      // cannot read as done while the save is in flight or after it failed.
+      writePersonalization: async (patch) => {
+        const r = await fetch("/api/personalization", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
+        // A refused or failed write must not pass for a saved one: the route
+        // answers 409/500 with the reason, and the file is left as it was.
+        if (!r.ok) throw new Error(((await r.json().catch(() => null)) as { error?: string } | null)?.error || `HTTP ${r.status}`);
+        router.refresh();
+        // The onboarding panel listens for this to refetch section state.
+        window.dispatchEvent(new CustomEvent("co-onboarding-changed"));
       },
     };
   }
@@ -500,17 +501,32 @@ export function AssistantConsole() {
   function resolveConfirm(cid: string, accept: boolean) {
     const run = confirmRuns.current.get(cid);
     confirmRuns.current.delete(cid);
-    const info = accept && run ? run() : null;
+    const result = accept && run ? run() : null;
+    if (!(result instanceof Promise)) {
+      settleConfirm(cid, accept ? "done" : "cancelled", result);
+      return;
+    }
+    // A write that answers later: leave "pending" now (no second decision),
+    // read as done only once it has landed, and as failed with its reason.
+    settleConfirm(cid, "saving", null);
+    result.then(
+      (info) => settleConfirm(cid, "done", info, info.note),
+      (e) => settleConfirm(cid, "failed", null, `Not saved: ${e instanceof Error ? e.message : "the request failed"}`),
+    );
+  }
+
+  function settleConfirm(cid: string, state: ConfirmState, info: DoneInfo | null, note?: string) {
     setMessages((ms) =>
       ms.map((m) => {
         if (!m.parts.some((p) => p.type === "confirm" && p.cid === cid)) return m;
         const parts: Part[] = m.parts.map((p) =>
-          p.type === "confirm" && p.cid === cid ? { ...p, state: accept ? "done" : "cancelled" } : p,
+          p.type === "confirm" && p.cid === cid ? { ...p, state } : p,
         );
         if (info?.jobIds?.length) {
           if (info.batchId && info.jobIds.length > 1) parts.push({ type: "batch", batchId: info.batchId, jobIds: info.jobIds });
           else parts.push(...info.jobIds.map((jobId) => ({ type: "card" as const, jobId })));
         }
+        if (note) parts.push({ type: "note", text: note });
         return { ...m, parts };
       }),
     );
@@ -885,6 +901,14 @@ function PartView({
   return null;
 }
 
+const CONFIRM_RESULT: Record<ConfirmState, string> = {
+  pending: "",
+  saving: "saving…",
+  done: "✓ started",
+  cancelled: "cancelled",
+  failed: "not saved",
+};
+
 function ConfirmationCard({ part, onConfirm }: {
   part: Extract<Part, { type: "confirm" }>;
   onConfirm: (cid: string, accept: boolean) => void;
@@ -933,7 +957,7 @@ function ConfirmationCard({ part, onConfirm }: {
         </div>
       ) : (
         <div ref={resultRef} tabIndex={-1} aria-labelledby={`${summaryId} ${resultId}`} className="mt-1 rounded text-xs text-faint focus-visible:outline-2 focus-visible:outline-brand">
-          <span id={resultId}>{part.state === "done" ? "✓ started" : "cancelled"}</span>
+          <span id={resultId}>{CONFIRM_RESULT[part.state]}</span>
         </div>
       )}
     </div>

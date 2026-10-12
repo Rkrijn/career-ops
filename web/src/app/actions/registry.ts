@@ -48,7 +48,7 @@ export type ActionCtx = {
   applyExplore?: (patch: Record<string, unknown>, opts?: { merge?: boolean; run?: boolean }) => void; // build a FREE discovery search
   writeProfile?: (patch: Record<string, unknown>) => void; // merge-safe config/profile.yml write
   writePortals?: (roles: string[], location?: string[]) => void; // merge-safe portals.yml title_filter write
-  writePersonalization?: (patch: Record<string, unknown>) => void; // section-safe modes/_profile.md write
+  writePersonalization?: (patch: Record<string, unknown>) => Promise<void>; // section-safe modes/_profile.md write; settles once written, rejects when refused or failed
 };
 
 export type ProfilePatch = {
@@ -84,7 +84,9 @@ export type DoneInfo = { jobIds?: string[]; batchId?: string; note?: string };
 export type DispatchResult =
   | ({ status: "done" } & DoneInfo)
   | { status: "ignored"; note?: string }
-  | { status: "confirm"; summary: string; run: () => DoneInfo };
+  // A run that returns a promise is a write the card waits on: it reads as done
+  // only once the promise resolves, and as failed when it rejects.
+  | { status: "confirm"; summary: string; run: () => DoneInfo | Promise<DoneInfo> };
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const isStr = (v: unknown): v is string => typeof v === "string" && v.length > 0;
@@ -346,8 +348,10 @@ const ACTIONS: Record<string, ActionDef> = {
       return {
         status: "confirm",
         summary: `Save your personalization? (${labels.join(", ")})`,
-        run: () => {
-          ctx.writePersonalization!(p);
+        // Awaited: "saved" is claimed only after the file is written, and a
+        // refused (409) or failed save rejects instead of passing for one.
+        run: async () => {
+          await ctx.writePersonalization!(p);
           return { note: "Personalization saved — evaluations now score against YOUR targeting." };
         },
       };
